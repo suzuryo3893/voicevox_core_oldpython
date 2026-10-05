@@ -1,14 +1,15 @@
 # voicevox\_core\_python\_api
 
 VOICEVOX CORE の Python バインディングです。
+ROS1のPython3.8に対応させるために改変しています。
 
 ## 環境構築
 
 以下の環境が必要です。
 
 - Rustup
-- Python ≧ 3.10
-- Poetry ≧ 2
+- Python ~~≧ 3.10~~ = 3.8
+- Poetry ~~≧ 2~~ = 1.8.5
 
 ```console
 ❯ poetry install --with dev
@@ -51,13 +52,13 @@ VOICEVOX CORE の Python バインディングです。
 `maturin develop` で Rust のコードが pyd として python/voicevox\_core 下に保存された後、`editable` なパッケージとしてインストールされます。
 
 ```console
-❯ maturin develop --locked
+❯ poetry run maturin develop --locked
 ```
 
 `maturin build` で whl としてビルドすることができます。
 
 ```console
-❯ maturin build --release --locked
+❯ poetry run maturin build --release --locked
 ```
 
 ## テスト
@@ -65,7 +66,7 @@ VOICEVOX CORE の Python バインディングです。
 `maturin develop` で editable な状態でインストールした後に[pytestのテスト]を実行します。
 
 ```console
-❯ pytest
+❯ poetry run pytest
 ```
 
 [pytestのテスト]: ./python/test/

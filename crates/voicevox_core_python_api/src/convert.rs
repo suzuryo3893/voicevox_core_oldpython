@@ -9,9 +9,11 @@ use pyo3::{
     Bound, FromPyObject, IntoPyObject, PyAny, PyErr, PyResult, Python,
     exceptions::{PyException, PyValueError},
     types::{
-        IntoPyDict as _, PyAnyMethods as _, PyDict, PyDictMethods as _, PyList, PyListMethods as _,
-        PyString, PyStringMethods as _,
+        IntoPyDict as _, PyAnyMethods, PyDict, PyDictMethods, PyList, PyListMethods,
+        PyString,
+        // PyStringMethods as _,
     },
+    pybacked::{PyBackedStr}
 };
 use ref_cast::RefCast;
 use serde::{Serialize, de::DeserializeOwned};
@@ -32,7 +34,7 @@ use crate::{
 };
 
 pub(crate) fn from_acceleration_mode(ob: &Bound<'_, PyAny>) -> PyResult<AccelerationMode> {
-    match ob.extract::<&str>()? {
+    match ob.extract::<String>()?.as_str() {
         "AUTO" => Ok(AccelerationMode::Auto),
         "CPU" => Ok(AccelerationMode::Cpu),
         "GPU" => Ok(AccelerationMode::Gpu),
@@ -46,7 +48,7 @@ pub(crate) fn from_acceleration_mode(ob: &Bound<'_, PyAny>) -> PyResult<Accelera
 pub(crate) fn from_on_existing_voice_model_id(
     ob: &Bound<'_, PyAny>,
 ) -> PyResult<OnExistingVoiceModelId> {
-    match ob.extract::<&str>()? {
+    match ob.extract::<String>()?.as_str() {
         "ERROR" => Ok(OnExistingVoiceModelId::Error),
         "RELOAD" => Ok(OnExistingVoiceModelId::Reload),
         "SKIP" => Ok(OnExistingVoiceModelId::Skip),
@@ -63,7 +65,8 @@ pub(crate) fn from_audio_query<T: HasCamelCaseFields>(ob: &Bound<'_, PyAny>) -> 
     let fields = dataclasses_asdict(ob)?
         .iter()
         .map(|(key, value)| {
-            let key = key.cast::<PyString>()?.to_str()?;
+            let backed_key = key.cast::<PyString>()?.extract::<PyBackedStr>()?;
+            let key: &str = &backed_key;
             let key = if T::SNAKE_CASE_FIELDS.contains(&key) {
                 key.to_owned()
             } else {
@@ -217,10 +220,10 @@ impl RustData for AudioQuery {
                     .collect::<Result<Vec<_>, _>>()?,
             )?;
             for key in kwargs.keys().iter() {
-                let key = key.cast::<PyString>()?.to_str()?;
+                let key: String = key.cast::<PyString>()?.extract()?;
                 let key_rename = key.to_snake_case();
                 if key_rename != key {
-                    let val = kwargs.get_item(key)?.expect("should be present");
+                    let val = kwargs.get_item(&key)?.expect("should be present");
                     kwargs.set_item(key_rename, val)?;
                     kwargs.del_item(key)?;
                 }
@@ -292,7 +295,8 @@ impl RustData for FrameAudioQuery {
                     .collect::<Result<Vec<_>, _>>()?,
             )?;
             for key in kwargs.keys().iter() {
-                let key = key.cast::<PyString>()?.to_str()?;
+                let backed_key = key.cast::<PyString>()?.extract::<PyBackedStr>()?;
+                let key: &str = &backed_key;
                 let key_rename = key.to_snake_case();
                 if key_rename != key {
                     let val = kwargs.get_item(key)?.expect("should be present");
@@ -347,13 +351,17 @@ pub(crate) fn to_rust_user_dict_word(
         .map_err(voicevox_core::Error::from)
         .into_py_result(ob.py())?;
 
+    let word_type_py = ob.getattr("word_type")?.extract::<pyo3::pybacked::PyBackedStr>()?;
+    let surface_py = ob.getattr("surface")?.extract::<String>()?;
+    let pronunciation_py = ob.getattr("pronunciation")?.extract::<String>()?;
+    let accent_type_py = ob.getattr("accent_type")?.extract::<usize>()?;
     voicevox_core::UserDictWord::builder()
-        .word_type(from_literal_choice(ob.getattr("word_type")?.extract()?)?)
+        .word_type(from_literal_choice(&word_type_py)?)
         .priority(priority)
         .build(
-            ob.getattr("surface")?.extract()?,
-            ob.getattr("pronunciation")?.extract()?,
-            ob.getattr("accent_type")?.extract()?,
+            &surface_py,
+            pronunciation_py,
+            accent_type_py
         )
         .into_py_result(ob.py())
 }

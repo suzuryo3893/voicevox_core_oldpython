@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import dataclasses
 import typing
 from dataclasses import InitVar
-from typing import Literal, NewType, NoReturn, TypeAlias
+from typing import Literal, NewType, NoReturn, Union
+from typing_extensions import TypeAlias
 from uuid import UUID
 
 from .._rust import (
@@ -69,10 +72,10 @@ Parameters
 x : UUID
 """
 
-StyleType: TypeAlias = (
-    Literal["talk", "singing_teacher", "frame_decode", "sing", "streaming_talk"]
-    | _Reserved
-)
+StyleType: TypeAlias = Union[
+    Literal["talk", "singing_teacher", "frame_decode", "sing", "streaming_talk"],
+    _Reserved
+]
 """
 
 |styletype-style|_ に対応するモデルの種類。
@@ -218,7 +221,7 @@ class SupportedDevices:
             raise TypeError("You cannot instantiate `SupportedDevices` by yourself")
 
 
-AccelerationMode: TypeAlias = Literal["AUTO", "CPU", "GPU"] | _Reserved
+AccelerationMode: TypeAlias = Union[Literal["AUTO", "CPU", "GPU"] , _Reserved]
 """
 ハードウェアアクセラレーションモードを設定する設定値。
 
@@ -263,7 +266,7 @@ def _(mode: AccelerationMode):
     _: str = mode
 
 
-OnExistingVoiceModelId: TypeAlias = Literal["ERROR", "RELOAD", "SKIP"] | _Reserved
+OnExistingVoiceModelId: TypeAlias = Union[Literal["ERROR", "RELOAD", "SKIP"] , _Reserved]
 """
 ``Synthesizer::load_voice_model`` の実行時に、同じ ``id`` の ``VoiceModelFile`` が既に読み込まれていたときのふるまい。
 
@@ -501,9 +504,9 @@ class AudioQuery:
         return _audio_query_to_json(self)
 
 
-UserDictWordType: TypeAlias = (
-    Literal["PROPER_NOUN", "COMMON_NOUN", "VERB", "ADJECTIVE", "SUFFIX"] | _Reserved
-)
+UserDictWordType: TypeAlias = Union[
+    Literal["PROPER_NOUN", "COMMON_NOUN", "VERB", "ADJECTIVE", "SUFFIX"] , _Reserved
+]
 """
 ユーザー辞書の単語の品詞。
 

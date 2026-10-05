@@ -1,3 +1,14 @@
+ROS1 Python3.8環境に対応したフォークです。
+crates/voicevox_core_python_apiが変更されています。
+
+確認環境
+* Ubuntu20.04 (Docker on WSL) 
+* ldd (Ubuntu GLIBC 2.31-0ubuntu9.16) 2.31
+* rustc 1.99.0 (b940084d7 2026-09-28)
+* ROS1 noetic
+* Python 3.8.10
+* Poetry 1.8.5
+
 # VOICEVOX CORE
 
 [![releases](https://img.shields.io/github/v/release/VOICEVOX/voicevox_core?label=release)](https://github.com/VOICEVOX/voicevox_core/releases)
